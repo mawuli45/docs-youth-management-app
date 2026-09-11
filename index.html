@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MMOGCC YOUTH HUB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">
+          <div class="brand-mark">Y</div>
+          <div>
+            <p class="brand-name">MMOGCC YOUTH HUB</p>
+          </div>
+        </div>
+
+        <nav class="main-nav">
+          <a href="#overview">Overview</a>
+          <a href="#dashboards">Dashboards</a>
+          <a href="#events">Events</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#executives">Executives</a>
+        </nav>
+
+        <div class="auth-area">
+          <span id="authStatus" class="auth-status">Not signed in</span>
+          <button id="loginBtn" class="primary-btn small-btn">Admin Login</button>
+          <button id="logoutBtn" class="secondary-btn small-btn hidden">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">MMOGCC YOUTH leadership.</p>
+            <h1>Building brighter futures through MMOGCC YOUTH action.</h1>
+            <p class="lead">
+              Register members, showcase MMOGCC YOUTH events, celebrate
+              milestones, and keep the MMOGCC YOUTH community connected through one
+              focused platform.
+            </p>
+            <div class="hero-actions">
+              <a href="#dashboards" class="primary-btn">Explore Dashboard</a>
+              <a href="#events" class="secondary-btn">View Events</a>
+            </div>
+            <ul class="hero-meta">
+              <li><strong>1,200+</strong><span>members</span></li>
+              <li><strong>24</strong><span>active projects</span></li>
+              <li><strong>86%</strong><span>engagement rate</span></li>
+            </ul>
+          </div>
+
+          <div class="hero-panel">
+            <div class="mini-card">
+              <span class="tag success">Live</span>
+              <h3>MMOGCC YOUTH Roadshow</h3>
+              <p>Saturday · 9:00 AM · MMOGCC YOUTH Center</p>
+            </div>
+            <div class="mini-graph">
+              <div class="bars">
+                <span style="height: 40%"></span>
+                <span style="height: 62%"></span>
+                <span style="height: 55%"></span>
+                <span style="height: 80%"></span>
+                <span style="height: 70%"></span>
+                <span style="height: 95%"></span>
+              </div>
+            </div>
+            <div class="mini-stats">
+              <div>
+                <strong>328</strong>
+                <span>Events seen</span>
+              </div>
+              <div>
+                <strong>94</strong>
+                <span>New signups</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section join-section">
+        <div class="container join-grid">
+          <div class="join-copy">
+            <p class="eyebrow">Join us</p>
+            <h2>Become part of MMOGCC YOUTH today.</h2>
+            <p>
+              Register to receive updates on events, outreach opportunities, and
+              leadership initiatives across MMOGCC YOUTH communities in Ghana.
+            </p>
+          </div>
+
+          <div class="join-card">
+            <h3>Member registration</h3>
+            <p>Start your membership journey with MMOGCC YOUTH.</p>
+            <button id="joinMemberBtn" class="primary-btn" type="button">Join MMOGCC YOUTH</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="overview" class="stats-section">
+        <div class="container stats-grid">
+          <article class="stat-card">
+            <span class="icon blue">👥</span>
+            <div>
+              <strong id="statMembers">0</strong>
+              <small>Registered members</small>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="icon purple">📅</span>
+            <div>
+              <strong id="statEvents">0</strong>
+              <small>Upcoming events</small>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="icon orange">🖼️</span>
+            <div>
+              <strong id="statGallery">0</strong>
+              <small>Gallery items</small>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="icon green">🏆</span>
+            <div>
+              <strong id="statExecutives">0</strong>
+              <small>Executives</small>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="dashboards" class="section">
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Dashboards</p>
+              <h2>Manage your MMOGCC YOUTH community with confidence</h2>
+            </div>
+            <div class="segmented-control">
+              <button class="view-toggle active" data-view="admin">Admin dashboard</button>
+            </div>
+          </div>
+
+          <div id="adminDashboard" class="dashboard-panel active hidden">
+            <div class="admin-grid">
+              <div class="panel wider admin-only">
+                <div class="panel-head">
+                  <h3>Member registration overview</h3>
+                  <button id="exportMembersBtn" class="chip-btn" type="button">Export</button>
+                </div>
+
+                <div class="overview-controls">
+                  <input id="memberSearchInput" type="search" placeholder="Search members..." />
+                  <select id="memberStatusFilter">
+                    <option value="all">All statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Review">Review</option>
+                  </select>
+                  <select id="memberSortSelect">
+                    <option value="name-asc">Sort: Name A–Z</option>
+                    <option value="name-desc">Sort: Name Z–A</option>
+                    <option value="status">Sort: Status</option>
+                    <option value="engagement-desc">Sort: Engagement</option>
+                  </select>
+                </div>
+
+                <div id="overviewHighlights" class="overview-highlights"></div>
+
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Member</th>
+                        <th>Role</th>
+                        <th>Engagement</th>
+                        <th>Age</th>
+                        <th>Day born group</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="memberTable"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="panel full-width admin-only">
+                <div class="panel-head">
+                  <h3>Membership insights</h3>
+                  <span class="chip purple">Live breakdown</span>
+                </div>
+                <div id="memberInsightsChart" class="insights-chart"></div>
+              </div>
+
+              <div class="panel full-width admin-only">
+                <div class="panel-head">
+                  <h3>Admin password settings</h3>
+                  <span class="chip neutral">Secure</span>
+                </div>
+
+                <form id="changePasswordForm" class="multi-form">
+                  <div class="field-row">
+                    <label>
+                      Current password
+                      <input type="password" name="currentPassword" placeholder="Enter current password" required />
+                    </label>
+                  </div>
+                  <div class="field-row">
+                    <label>
+                      New password
+                      <input type="password" name="newPassword" placeholder="Enter new password" required />
+                    </label>
+                    <label>
+                      Confirm password
+                      <input type="password" name="confirmPassword" placeholder="Confirm new password" required />
+                    </label>
+                  </div>
+                  <button type="submit" class="primary-btn small">Update password</button>
+                </form>
+              </div>
+
+              <div class="panel full-width admin-only">
+                <div class="panel-head">
+                  <h3>Member activity records</h3>
+                  <span class="chip neutral">Admin only</span>
+                </div>
+                <div id="activityRecordsList" class="activity-records"></div>
+              </div>
+
+              <div class="panel admin-only">
+                <div class="panel-head">
+                  <h3>Engagement pulse</h3>
+                  <span class="chip success">+18% this month</span>
+                </div>
+                <div class="engagement-graph">
+                  <div class="graph-bars">
+                    <span style="height: 32%"></span>
+                    <span style="height: 58%"></span>
+                    <span style="height: 40%"></span>
+                    <span style="height: 76%"></span>
+                    <span style="height: 66%"></span>
+                    <span style="height: 82%"></span>
+                    <span style="height: 92%"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel full-width admin-only">
+                <div class="panel-head">
+                  <h3>Event upload center</h3>
+                  <span class="chip neutral">Fast publish</span>
+                </div>
+
+                <form id="eventForm" class="multi-form">
+                  <div class="field-row">
+                    <label>
+                      Event title
+                      <input type="text" name="title" placeholder="Youth Leadership Forum" required />
+                    </label>
+                    <label>
+                      Date
+                      <input type="date" name="date" required />
+                    </label>
+                  </div>
+                  <div class="field-row">
+                    <label>
+                      Venue
+                      <input type="text" name="venue" placeholder="Main Hall" required />
+                    </label>
+                    <label>
+                      Category
+                      <select name="category">
+                        <option value="Training">Training</option>
+                        <option value="Outreach">Outreach</option>
+                        <option value="Workshop">Workshop</option>
+                        <option value="Social">Social</option>
+                      </select>
+                    </label>
+                  </div>
+                  <label>
+                    Description
+                    <textarea name="description" rows="3" placeholder="Brief summary of the event..." required></textarea>
+                  </label>
+                  <div class="field-row upload-row">
+                    <label class="upload-box">
+                      <input type="file" name="poster" accept="image/*" />
+                      <span>Upload poster</span>
+                    </label>
+                    <button type="submit" class="primary-btn small">Publish event</button>
+                  </div>
+                </form>
+              </div>
+
+              <div class="panel full-width admin-only">
+                <div class="panel-head">
+                  <h3>Add a member</h3>
+                  <span class="chip neutral">Quick register</span>
+                </div>
+
+                <form id="memberForm" class="multi-form">
+                  <div class="field-row">
+                    <label>
+                      Full name
+                      <input type="text" name="memberName" placeholder="Mary Adhiambo" required />
+                    </label>
+                    <label>
+                      Role
+                      <input type="text" name="memberRole" placeholder="Community Volunteer" required />
+                    </label>
+                  </div>
+                  <div class="field-row">
+                    <label>
+                      Status
+                      <select name="memberStatus">
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Review">Review</option>
+                      </select>
+                    </label>
+                    <button type="submit" class="primary-btn small">Add member</button>
+                  </div>
+                </form>
+              </div>
+
+              <div class="panel full-width admin-only">
+                <div class="panel-head">
+                  <h3>Add an executive</h3>
+                  <span class="chip neutral">Admin only</span>
+                </div>
+
+                <form id="executiveForm" class="multi-form">
+                  <div class="field-row">
+                    <label>
+                      Executive name
+                      <input type="text" name="executiveName" placeholder="Mary Asare" required />
+                    </label>
+                    <label>
+                      Role
+                      <input type="text" name="executiveRole" placeholder="MMOGCC YOUTH Programs Director" required />
+                    </label>
+                  </div>
+                  <div class="field-row">
+                    <label>
+                      Focus area
+                      <input type="text" name="executiveFocus" placeholder="Leadership" required />
+                    </label>
+                    <label>
+                      Photo
+                      <input type="file" name="executiveImage" accept="image/*" required />
+                    </label>
+                  </div>
+                  <label>
+                    Quote
+                    <textarea name="executiveQuote" rows="3" placeholder="A short leadership message..." required></textarea>
+                  </label>
+                  <button type="submit" class="primary-btn small">Add executive</button>
+                </form>
+              </div>
+
+              <div class="panel full-width admin-only">
+                <div class="panel-head">
+                  <h3>Gallery upload center</h3>
+                  <span class="chip neutral">Admin only</span>
+                </div>
+
+                <form id="galleryForm" class="gallery-form">
+                  <label>
+                    Add gallery image
+                    <input type="file" name="galleryImage" accept="image/*" />
+                  </label>
+                  <label>
+                    Caption
+                    <input type="text" name="caption" placeholder="Community cleanup drive" />
+                  </label>
+                  <label>
+                    Category
+                    <select name="category">
+                      <option value="Training">Training</option>
+                      <option value="Outreach">Outreach</option>
+                      <option value="Workshop">Workshop</option>
+                      <option value="Social">Social</option>
+                    </select>
+                  </label>
+                  <button type="submit" class="primary-btn small">Upload image</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div id="memberDashboard" class="dashboard-panel">
+            <div class="member-grid">
+              <div class="panel profile-panel">
+                <div class="panel-head">
+                  <h3>Registration summary</h3>
+                  <span class="chip success">Active member</span>
+                </div>
+                <div class="member-profile">
+                  <div class="avatar">SM</div>
+                  <div>
+                    <h4 id="memberProfileName">Sarah Mantey</h4>
+                    <p id="memberProfileId">Member ID: MMOGCC-2048</p>
+                  </div>
+                </div>
+                <ul class="profile-list">
+                  <li><span>Email</span><strong id="memberProfileEmail">sarah@mmogccgh.org</strong></li>
+                  <li><span>Department</span><strong id="memberProfileRole">Catholic Youth Formation & Outreach</strong></li>
+                  <li><span>Attendance</span><strong id="memberProfileAttendance">92%</strong></li>
+                </ul>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>My tasks</h3>
+                  <span class="chip neutral">3 pending</span>
+                </div>
+                <ul id="taskList" class="task-list"></ul>
+              </div>
+
+              <div class="panel full-width">
+                <div class="panel-head">
+                  <h3>Member signup</h3>
+                  <span class="chip success">Join MMOGCC YOUTH</span>
+                </div>
+
+                <form id="memberSignupForm" class="multi-form">
+                  <div class="field-row">
+                    <label>
+                      Full name
+                      <input type="text" name="signupName" placeholder="Kwesi Agyeman" required />
+                    </label>
+                    <label>
+                      Email address
+                      <input type="email" name="signupEmail" placeholder="kwesi@example.com" required />
+                    </label>
+                  </div>
+                  <div class="field-row">
+                    <label>
+                      Department / interest
+                      <input type="text" name="signupRole" placeholder="Catholic Youth Formation" required />
+                    </label>
+                    <button type="submit" class="primary-btn small">Sign up</button>
+                  </div>
+                  <div id="memberSignupFeedback" class="form-message" aria-live="polite"></div>
+                </form>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Upcoming participation</h3>
+                  <span class="chip purple">4 booked</span>
+                </div>
+                <div id="memberEvents" class="event-stack"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="events" class="section alternate">
+        <div class="container">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Events</p>
+              <h2>Latest MMOGCC YOUTH initiatives and events</h2>
+            </div>
+          </div>
+          <div id="eventsGrid" class="events-grid"></div>
+        </div>
+      </section>
+
+      <section id="gallery" class="section">
+        <div class="container">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Gallery</p>
+              <h2>Moments from our MMOGCC YOUTH journey</h2>
+            </div>
+          </div>
+
+          <div class="gallery-controls">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="Training">Training</button>
+            <button class="filter-btn" data-filter="Outreach">Outreach</button>
+            <button class="filter-btn" data-filter="Workshop">Workshop</button>
+            <button class="filter-btn" data-filter="Social">Social</button>
+          </div>
+
+          <div id="galleryGrid" class="gallery-grid"></div>
+        </div>
+      </section>
+
+      <section id="announcements" class="section alternate">
+        <div class="container">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Announcements</p>
+              <h2>Latest updates from the MMOGCC YOUTH office</h2>
+            </div>
+          </div>
+          <div id="announcementsList" class="announcements-list"></div>
+        </div>
+      </section>
+
+      <section id="executives" class="section alternate">
+        <div class="container">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Executives</p>
+              <h2>Know Your Executives</h2>
+            </div>
+          </div>
+          <div id="executivesGrid" class="executives-grid"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <p class="brand-name">MMOGCC YOUTH HUB</p>
+          <small>Serving MMOGCC YOUTH voices, actions, and opportunities.</small>
+        </div>
+        <a href="#dashboards" class="secondary-btn">Return to dashboard</a>
+      </div>
+    </footer>
+
+    <div id="signupModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-head">
+          <h3>Join MMOGCC YOUTH</h3>
+          <button id="closeSignupModalBtn" class="close-btn" type="button">×</button>
+        </div>
+
+        <form id="signupForm" class="login-form">
+          <label>
+            Full name
+            <input type="text" name="signupName" placeholder="Kwesi Agyeman" required />
+          </label>
+          <label>
+            Email address
+            <input type="email" name="signupEmail" placeholder="kwesi@example.com" required />
+          </label>
+          <label>
+            Department / interest
+            <input type="text" name="signupRole" placeholder="Catholic Youth Formation" required />
+          </label>
+          <label>
+            Date of birth
+            <input type="date" name="signupDob" required />
+          </label>
+          <label>
+            Age
+            <input type="number" name="signupAge" min="1" max="120" placeholder="18" required />
+          </label>
+          <label>
+            Day born group
+            <select name="signupDayBornGroup" required>
+              <option value="">Select day born group</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+              <option value="Sunday">Sunday</option>
+            </select>
+          </label>
+          <label>
+            Location
+            <input type="text" name="signupLocation" placeholder="Accra, Ghana" required />
+          </label>
+          <label>
+            Employment status
+            <select name="signupEmploymentStatus" required>
+              <option value="">Select employment status</option>
+              <option value="Employed">Employed</option>
+              <option value="Self-employed">Self-employed</option>
+              <option value="Student">Student</option>
+              <option value="Unemployed">Unemployed</option>
+            </select>
+          </label>
+          <label>
+            Contact
+            <input type="text" name="signupContact" placeholder="0244 000 000" required />
+          </label>
+          <label>
+            Emergency contact
+            <input type="text" name="signupEmergencyContact" placeholder="0244 000 001" required />
+          </label>
+          <button type="submit" class="primary-btn">Register</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="galleryModal" class="modal hidden">
+      <div class="modal-content gallery-modal-content">
+        <div class="modal-head">
+          <h3 id="galleryModalTitle">Gallery</h3>
+          <button id="closeGalleryModalBtn" class="close-btn" type="button">×</button>
+        </div>
+
+        <div class="gallery-slideshow">
+          <button id="galleryPrevBtn" class="slideshow-btn" type="button" aria-label="Previous image">‹</button>
+          <img id="galleryModalImage" src="" alt="Gallery item" />
+          <button id="galleryNextBtn" class="slideshow-btn" type="button" aria-label="Next image">›</button>
+        </div>
+
+        <div class="gallery-modal-footer">
+          <p id="galleryModalCategory">Category</p>
+          <div class="gallery-counter">
+            <span id="galleryCurrentIndex">1</span>
+            <span>/</span>
+            <span id="galleryTotalCount">1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="editModal" class="modal hidden">
+      <div class="modal-content modal-content-wide">
+        <div class="modal-head">
+          <h3>Edit record</h3>
+          <button id="closeEditModalBtn" class="close-btn" type="button">×</button>
+        </div>
+
+        <form id="editForm" class="login-form"></form>
+      </div>
+    </div>
+
+    <div id="loginModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-head">
+          <h3>Admin Login</h3>
+          <button id="closeModalBtn" class="close-btn" type="button">×</button>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <label>
+            Username
+            <input type="text" name="username" placeholder="admin" required />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" placeholder="Enter password" required />
+          </label>
+          <button type="submit" class="primary-btn">Sign in</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="chatbotWidget" class="chatbot-widget">
+      <div id="chatbotPanel" class="chatbot-panel hidden">
+        <div class="chatbot-head">
+          <div>
+            <h3>MMOGCC YOUTH Help</h3>
+            <small>Ask about registration, gallery, executives, and events</small>
+          </div>
+          <button id="chatbotCloseBtn" class="close-btn" type="button">×</button>
+        </div>
+
+        <div id="chatbotMessages" class="chatbot-messages">
+          <div class="message bot">
+            Hello! I’m the MMOGCC YOUTH help assistant. Ask me about registration, gallery, executives, events, and updates.
+          </div>
+        </div>
+
+        <div class="chatbot-suggestions">
+          <button class="chatbot-suggestion" type="button" data-question="How do I register as a member?">Register</button>
+          <button class="chatbot-suggestion" type="button" data-question="How do I view gallery pictures?">Gallery</button>
+        </div>
+
+        <form id="chatbotForm" class="chatbot-form">
+          <input id="chatbotInput" type="text" placeholder="Type your question..." autocomplete="off" />
+          <button type="submit" class="primary-btn small">Send</button>
+        </form>
+      </div>
+
+      <button id="chatbotToggleBtn" class="chatbot-toggle" type="button" aria-label="Open help chatbot">
+        Help
+      </button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
