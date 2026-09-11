@@ -146,8 +146,42 @@
               <p class="eyebrow">Dashboards</p>
               <h2>Manage your MMOGCC YOUTH community with confidence</h2>
             </div>
-            <div class="segmented-control">
-              <button class="view-toggle active" data-view="admin">Admin dashboard</button>
+            <div class="dashboard-actions">
+              <div class="segmented-control">
+                <button class="view-toggle active" data-view="admin">Admin dashboard</button>
+              </div>
+
+              <div id="chatbotWidget" class="chatbot-widget inline-help">
+                <div id="chatbotPanel" class="chatbot-panel hidden">
+                  <div class="chatbot-head">
+                    <div>
+                      <h3>MMOGCC YOUTH Help</h3>
+                      <small>Ask about registration, gallery, executives, and events</small>
+                    </div>
+                    <button id="chatbotCloseBtn" class="close-btn" type="button">×</button>
+                  </div>
+
+                  <div id="chatbotMessages" class="chatbot-messages">
+                    <div class="message bot">
+                      Hello! I’m the MMOGCC YOUTH help assistant. Ask me about registration, gallery, executives, events, and updates.
+                    </div>
+                  </div>
+
+                  <div class="chatbot-suggestions">
+                    <button class="chatbot-suggestion" type="button" data-question="How do I register as a member?">Register</button>
+                    <button class="chatbot-suggestion" type="button" data-question="How do I view gallery pictures?">Gallery</button>
+                  </div>
+
+                  <form id="chatbotForm" class="chatbot-form">
+                    <input id="chatbotInput" type="text" placeholder="Type your question..." autocomplete="off" />
+                    <button type="submit" class="primary-btn small">Send</button>
+                  </form>
+                </div>
+
+                <button id="chatbotToggleBtn" class="chatbot-toggle" type="button" aria-label="Open help chatbot">
+                  Help
+                </button>
+              </div>
             </div>
           </div>
 
@@ -656,38 +690,6 @@
           <button type="submit" class="primary-btn">Sign in</button>
         </form>
       </div>
-    </div>
-
-    <div id="chatbotWidget" class="chatbot-widget">
-      <div id="chatbotPanel" class="chatbot-panel hidden">
-        <div class="chatbot-head">
-          <div>
-            <h3>MMOGCC YOUTH Help</h3>
-            <small>Ask about registration, gallery, executives, and events</small>
-          </div>
-          <button id="chatbotCloseBtn" class="close-btn" type="button">×</button>
-        </div>
-
-        <div id="chatbotMessages" class="chatbot-messages">
-          <div class="message bot">
-            Hello! I’m the MMOGCC YOUTH help assistant. Ask me about registration, gallery, executives, events, and updates.
-          </div>
-        </div>
-
-        <div class="chatbot-suggestions">
-          <button class="chatbot-suggestion" type="button" data-question="How do I register as a member?">Register</button>
-          <button class="chatbot-suggestion" type="button" data-question="How do I view gallery pictures?">Gallery</button>
-        </div>
-
-        <form id="chatbotForm" class="chatbot-form">
-          <input id="chatbotInput" type="text" placeholder="Type your question..." autocomplete="off" />
-          <button type="submit" class="primary-btn small">Send</button>
-        </form>
-      </div>
-
-      <button id="chatbotToggleBtn" class="chatbot-toggle" type="button" aria-label="Open help chatbot">
-        Help
-      </button>
     </div>
 
     <script src="script.js"></script>

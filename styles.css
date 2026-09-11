@@ -985,6 +985,29 @@ textarea {
   gap: 12px;
 }
 
+.chatbot-widget.inline-help {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 20;
+}
+
+.chatbot-widget.inline-help .chatbot-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  width: min(360px, calc(100vw - 32px));
+}
+
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .chatbot-panel {
   width: min(360px, calc(100vw - 32px));
   background: rgba(255, 255, 255, 0.98);
@@ -1544,6 +1567,13 @@ body.member-mode .admin-only {
     right: 16px;
     left: 16px;
     align-items: stretch;
+  }
+
+  .chatbot-widget.inline-help {
+    position: static;
+    right: auto;
+    left: auto;
+    align-items: center;
   }
 
   .chatbot-panel {
