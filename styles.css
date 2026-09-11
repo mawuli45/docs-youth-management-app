@@ -1643,6 +1643,36 @@ body.member-mode .admin-only {
     display: flex;
   }
 
+  .panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .overview-highlights {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-record {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .activity-meta {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .member-profile {
+    align-items: flex-start;
+  }
+
+  .profile-list li,
+  .task-list li,
+  .event-shell {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .edit-btn,
   .delete-btn {
     flex: 1 1 120px;
@@ -1693,6 +1723,18 @@ body.member-mode .admin-only {
   .stat-card {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .dashboard-panel .panel-head {
+    margin-bottom: 14px;
+  }
+
+  .table-wrap {
+    margin-top: 10px;
+  }
+
+  .table-wrap table {
+    min-width: 640px;
   }
 }
 
