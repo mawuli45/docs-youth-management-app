@@ -1578,6 +1578,15 @@ body.member-mode .admin-only {
     padding-top: 48px;
   }
 
+  .hero-copy h1 {
+    font-size: clamp(2.35rem, 10vw, 4rem);
+    line-height: 0.96;
+  }
+
+  .lead {
+    font-size: 1rem;
+  }
+
   .hero-actions {
     flex-direction: column;
     align-items: stretch;
@@ -1587,6 +1596,20 @@ body.member-mode .admin-only {
   .hero-actions .secondary-btn {
     width: 100%;
     text-align: center;
+  }
+
+  .hero-meta {
+    gap: 18px;
+    justify-content: space-between;
+  }
+
+  .hero-meta li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .hero-meta strong {
+    font-size: 1.3rem;
   }
 
   .mini-stats {
@@ -1670,5 +1693,65 @@ body.member-mode .admin-only {
   .stat-card {
     padding-left: 16px;
     padding-right: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .container {
+    width: min(1200px, calc(100% - 18px));
+  }
+
+  .nav {
+    padding: 14px 0;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    font-size: 0.92rem;
+  }
+
+  .brand-name {
+    font-size: 0.97rem;
+  }
+
+  .primary-btn,
+  .secondary-btn,
+  .chip-btn,
+  .view-toggle,
+  .filter-btn,
+  .close-btn {
+    padding: 11px 14px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2.1rem, 12vw, 3rem);
+  }
+
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 8px;
+  }
+
+  .hero-meta li {
+    flex: none;
+  }
+
+  .hero-meta strong {
+    font-size: 1.15rem;
+  }
+
+  .hero-meta span {
+    font-size: 0.8rem;
+  }
+
+  .join-copy h2 {
+    font-size: 1.8rem;
+  }
+
+  .section-heading h2 {
+    font-size: 1.55rem;
   }
 }
