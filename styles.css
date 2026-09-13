@@ -1730,14 +1730,15 @@ body.member-mode .admin-only {
 
   .chatbot-widget {
     right: 16px;
-    left: 16px;
-    align-items: stretch;
+    left: auto;
+    align-items: flex-end;
   }
 
   .chatbot-widget.inline-help {
-    position: static;
+    position: relative;
     right: auto;
     left: auto;
+    bottom: auto;
     align-items: center;
   }
 
@@ -1747,6 +1748,19 @@ body.member-mode .admin-only {
 }
 
 @media (max-width: 760px) {
+  .modal-content {
+    width: min(460px, calc(100vw - 20px));
+    padding: 18px;
+  }
+
+  .modal-content-wide {
+    width: min(720px, calc(100vw - 20px));
+  }
+
+  .login-form {
+    gap: 14px;
+  }
+
   .nav {
     flex-direction: column;
     align-items: stretch;
@@ -1940,6 +1954,17 @@ body.member-mode .admin-only {
 
   .nav {
     padding: 14px 0;
+  }
+
+  .modal-content {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .login-form input,
+  .login-form textarea,
+  .login-form select {
+    padding: 11px 12px;
   }
 
   .brand-mark {
