@@ -1137,9 +1137,11 @@ textarea {
   position: relative;
   right: auto;
   bottom: auto;
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  max-width: 100%;
   z-index: 20;
 }
 
@@ -1259,6 +1261,7 @@ textarea {
   animation: bubbleFloat 2.8s ease-in-out infinite;
   overflow: visible;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  max-width: 100%;
 }
 
 .chatbot-toggle:hover {
@@ -1739,7 +1742,10 @@ body.member-mode .admin-only {
     right: auto;
     left: auto;
     bottom: auto;
+    display: flex;
     align-items: center;
+    justify-content: flex-end;
+    max-width: 100%;
   }
 
   .chatbot-panel {
