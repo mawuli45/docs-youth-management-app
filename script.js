@@ -679,6 +679,39 @@ function handleMemberFormSubmit(event) {
   event.target.reset();
 }
 
+function updateSignupEmploymentDetailField() {
+  const employmentStatusSelect = document.querySelector('[name="signupEmploymentStatus"]');
+  const detailLabel = document.getElementById('signupEmploymentDetailLabel');
+  const detailInput = document.getElementById('signupEmploymentDetail');
+  const detailLabelText = document.getElementById('signupEmploymentDetailLabelText');
+  const employmentStatus = employmentStatusSelect?.value || '';
+
+  const detailConfig = {
+    Student: {
+      label: 'School name',
+      placeholder: 'Enter the school name',
+    },
+    Employed: {
+      label: 'Employer / workplace name',
+      placeholder: 'Enter the company or workplace name',
+    },
+    'Self-employed': {
+      label: 'Business / workplace name',
+      placeholder: 'Enter the business or workplace name',
+    },
+  };
+
+  const shouldShowDetail = ['Student', 'Employed', 'Self-employed'].includes(employmentStatus);
+
+  detailLabel?.classList.toggle('hidden', !shouldShowDetail);
+  detailInput.placeholder = detailConfig[employmentStatus]?.placeholder || 'Enter the school name';
+  detailLabelText.textContent = detailConfig[employmentStatus]?.label || 'School name';
+
+  if (!shouldShowDetail) {
+    detailInput.value = '';
+  }
+}
+
 function handleMemberSignupSubmit(event) {
   event.preventDefault();
   const form = new FormData(event.target);
@@ -690,10 +723,13 @@ function handleMemberSignupSubmit(event) {
   const dayBornGroup = form.get('signupDayBornGroup')?.trim() || '';
   const location = form.get('signupLocation')?.trim() || '';
   const employmentStatus = form.get('signupEmploymentStatus')?.trim() || '';
+  const employmentDetail = form.get('signupEmploymentDetail')?.trim() || '';
   const contact = form.get('signupContact')?.trim() || '';
   const emergencyContact = form.get('signupEmergencyContact')?.trim() || '';
 
-  if (!name || !email || !role || !dob || !age || !dayBornGroup || !location || !employmentStatus || !contact || !emergencyContact) {
+  const requiresEmploymentDetail = ['Student', 'Employed', 'Self-employed'].includes(employmentStatus);
+
+  if (!name || !email || !role || !dob || !age || !dayBornGroup || !location || !employmentStatus || !contact || !emergencyContact || (requiresEmploymentDetail && !employmentDetail)) {
     alert('Please complete all signup fields before registering.');
     return;
   }
@@ -715,6 +751,7 @@ function handleMemberSignupSubmit(event) {
     dayBornGroup,
     location,
     employmentStatus,
+    employmentDetail,
     contact,
     emergencyContact,
   };
@@ -842,6 +879,12 @@ function bindFormHandlers() {
   if (signupForm) {
     signupForm.addEventListener('submit', handleMemberSignupSubmit);
   }
+
+  const signupEmploymentStatus = document.querySelector('[name="signupEmploymentStatus"]');
+  if (signupEmploymentStatus) {
+    signupEmploymentStatus.addEventListener('change', updateSignupEmploymentDetailField);
+    updateSignupEmploymentDetailField();
+  }
 }
 
 function bindMemberOverviewControls() {
@@ -913,6 +956,14 @@ function buildEditForm(type, index) {
   }
 
   if (type === 'member') {
+    const employmentDetailLabel = item.employmentStatus === 'Student'
+      ? 'School name'
+      : item.employmentStatus === 'Employed'
+        ? 'Employer / workplace name'
+        : item.employmentStatus === 'Self-employed'
+          ? 'Business / workplace name'
+          : 'Employment detail';
+
     return `
       <div class="field-row">
         <label>
@@ -985,9 +1036,15 @@ function buildEditForm(type, index) {
       </div>
       <div class="field-row">
         <label>
+          Employment detail
+          <input type="text" name="employmentDetail" value="${escapeHtml(item.employmentDetail || '')}" placeholder="${escapeHtml(employmentDetailLabel)}" />
+        </label>
+        <label>
           Contact
           <input type="text" name="contact" value="${escapeHtml(item.contact || '')}" />
         </label>
+      </div>
+      <div class="field-row">
         <label>
           Emergency contact
           <input type="text" name="emergencyContact" value="${escapeHtml(item.emergencyContact || '')}" />
@@ -1166,9 +1223,16 @@ function handleEditFormSubmit(event) {
     const email = formData.get('email')?.toString().trim();
     const engagement = formData.get('engagement')?.toString().trim();
     const status = formData.get('status')?.toString().trim();
+    const employmentStatus = formData.get('employmentStatus')?.toString().trim() || '';
+    const employmentDetail = formData.get('employmentDetail')?.toString().trim() || '';
 
     if (!name || !role || !engagement || !status) {
       alert('Please complete all required member fields before saving.');
+      return;
+    }
+
+    if (['Student', 'Employed', 'Self-employed'].includes(employmentStatus) && !employmentDetail) {
+      alert('Please enter the school or workplace name for the selected employment status.');
       return;
     }
 
@@ -1183,7 +1247,8 @@ function handleEditFormSubmit(event) {
       age: formData.get('age')?.toString().trim() || '',
       dayBornGroup: formData.get('dayBornGroup')?.toString().trim() || '',
       location: formData.get('location')?.toString().trim() || '',
-      employmentStatus: formData.get('employmentStatus')?.toString().trim() || '',
+      employmentStatus,
+      employmentDetail,
       contact: formData.get('contact')?.toString().trim() || '',
       emergencyContact: formData.get('emergencyContact')?.toString().trim() || '',
     };
@@ -1637,6 +1702,7 @@ function exportMembersOverview() {
     'Day Born Group',
     'Location',
     'Employment Status',
+    'Employment Detail',
     'Contact',
     'Emergency Contact',
   ];
@@ -1652,6 +1718,7 @@ function exportMembersOverview() {
     member.dayBornGroup || '',
     member.location || '',
     member.employmentStatus || '',
+    member.employmentDetail || '',
     member.contact || '',
     member.emergencyContact || '',
   ]);
