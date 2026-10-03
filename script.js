@@ -599,6 +599,10 @@ function switchDashboard(view) {
 function setupDashboardButtons() {
   document.querySelectorAll('.view-toggle').forEach((button) => {
     button.addEventListener('click', () => {
+      if (button.dataset.view === 'member') {
+        playDuesToggleSound();
+      }
+
       if (button.dataset.view === 'admin' && state.role !== 'admin') {
         openLoginModal();
         return;
@@ -616,8 +620,36 @@ function setupDashboardButtons() {
     });
   });
 
-  document.getElementById('openDuesPaymentBtn').addEventListener('click', openDuesPaymentModal);
+  document.getElementById('openDuesPaymentBtn').addEventListener('click', () => {
+    playDuesToggleSound();
+    openDuesPaymentModal();
+  });
   document.getElementById('closeDuesPaymentModalBtn').addEventListener('click', closeDuesPaymentModal);
+}
+
+function playDuesToggleSound() {
+  const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextConstructor) {
+    return;
+  }
+
+  const audioContext = new AudioContextConstructor();
+  const oscillator = audioContext.createOscillator();
+  const volume = audioContext.createGain();
+  const startTime = audioContext.currentTime;
+
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(660, startTime);
+  oscillator.frequency.setValueAtTime(880, startTime + 0.09);
+  volume.gain.setValueAtTime(0.0001, startTime);
+  volume.gain.exponentialRampToValueAtTime(0.12, startTime + 0.02);
+  volume.gain.setValueAtTime(0.12, startTime + 0.1);
+  volume.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.28);
+  oscillator.connect(volume);
+  volume.connect(audioContext.destination);
+  oscillator.onended = () => audioContext.close();
+  oscillator.start(startTime);
+  oscillator.stop(startTime + 0.29);
 }
 
 function setupFilterButtons() {
