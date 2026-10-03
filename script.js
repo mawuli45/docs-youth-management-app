@@ -603,6 +603,11 @@ function setupDashboardButtons() {
         return;
       }
 
+      if (button.dataset.view === 'member' && state.role !== 'member') {
+        openSignupModal();
+        return;
+      }
+
       switchDashboard(button.dataset.view);
     });
   });
