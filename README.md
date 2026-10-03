@@ -38,15 +38,17 @@ For reliable payment updates when a member closes checkout before returning to t
 1. Push this project to a GitHub repository.
 2. Go to Railway and create a new project from GitHub.
 3. Select the repository and Railway will detect the Python app.
-4. Make sure the service uses the default build command and set the start command to:
+4. Add a Railway Volume to the app service and set its mount path to `/data`.
+5. In the app service's Production variables, set `DATABASE_PATH` to `/data/mmogcc_youth.db`.
+6. Make sure the service uses the default build command and set the start command to:
 
 ```bash
 python server.py
 ```
 
-5. Railway will automatically expose the app on a public URL.
+7. Railway will automatically expose the app on a public URL.
 
-> This project already uses the `PORT` environment variable provided by Railway, so no extra code changes are required for hosting.
+The app creates the database file and parent folder if needed. Keep the Railway Volume attached to the same service and mount path across deployments. A new volume will start with a fresh database; it does not recover registrations stored in an older ephemeral database.
 
 ## Features
 
@@ -54,4 +56,5 @@ python server.py
 - Publish events with custom details and poster placeholders
 - Add gallery images with captions and categories
 - Browse executive profiles and community highlights
-- Local demo state is stored in browser `localStorage`
+- Server state and dues payments are stored in SQLite; configure `DATABASE_PATH` on hosts with persistent volumes
+- Browser `localStorage` provides local demo state when the server API is unavailable

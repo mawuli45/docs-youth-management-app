@@ -16,7 +16,12 @@ from urllib.request import Request, urlopen
 
 APP_DIR = Path(__file__).resolve().parent
 ROOT_DIR = APP_DIR
-DB_FILE = APP_DIR / 'mmogcc_youth.db'
+DATABASE_PATH = os.environ.get('DATABASE_PATH', '').strip()
+DB_FILE = (
+    Path(DATABASE_PATH).expanduser()
+    if DATABASE_PATH
+    else APP_DIR / 'mmogcc_youth.db'
+)
 PAYSTACK_API_URL = 'https://api.paystack.co'
 PAYMENT_CURRENCY = 'GHS'
 
@@ -159,6 +164,7 @@ def get_connection():
 
 
 def ensure_storage():
+    DB_FILE.parent.mkdir(parents=True, exist_ok=True)
     conn = get_connection()
     conn.execute(
         'CREATE TABLE IF NOT EXISTS app_state (id INTEGER PRIMARY KEY CHECK(id = 1), payload TEXT NOT NULL)'
