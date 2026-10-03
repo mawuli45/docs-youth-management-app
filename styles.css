@@ -2082,6 +2082,7 @@ body {
 .brand-mark {
   border-radius: 13px;
   box-shadow: 0 8px 18px rgba(23, 105, 224, 0.2);
+  object-fit: cover;
 }
 
 .brand-name {
