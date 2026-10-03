@@ -214,6 +214,11 @@ class AppHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT_DIR), **kwargs)
 
+    def end_headers(self):
+        if urlsplit(self.path).path in ('/', '/index.html', '/styles.css'):
+            self.send_header('Cache-Control', 'no-cache')
+        super().end_headers()
+
     def do_GET(self):
         parsed = urlsplit(self.path)
         path = parsed.path
