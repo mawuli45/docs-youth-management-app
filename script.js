@@ -15,7 +15,6 @@ const defaultMembers = [
   { name: 'Amina Salifu', role: 'MMOGCC YOUTH Media & Outreach', engagement: '83%', status: 'Pending' },
   { name: 'Daniel Koduah', role: 'MMOGCC YOUTH Mentor', engagement: '74%', status: 'Review' },
 ];
-
 const defaultAnnouncements = [
   {
     title: 'MMOGCC YOUTH council meeting rescheduled',
@@ -767,6 +766,77 @@ function handleMemberSignupSubmit(event) {
   alert('Your MMOGCC YOUTH membership signup has been received.');
 }
 
+function setDuesPaymentMessage(message, isError = false) {
+  const status = document.getElementById('duesPaymentMessage');
+  if (!status) {
+    return;
+  }
+
+  status.textContent = message;
+  status.classList.toggle('error', isError);
+}
+
+async function handleDuesPaymentSubmit(event) {
+  event.preventDefault();
+  const member = state.currentMember;
+  if (!member?.name || !member.email) {
+    setDuesPaymentMessage('Please register or sign in as a member before paying dues.', true);
+    return;
+  }
+
+  const form = new FormData(event.currentTarget);
+  const amount = form.get('duesAmount');
+  const button = document.getElementById('duesPaymentButton');
+  button.disabled = true;
+  setDuesPaymentMessage('Preparing secure Paystack checkout…');
+
+  try {
+    const response = await fetch('/api/payments/initialize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: member.name, email: member.email, amount }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Could not start your payment.');
+    }
+
+    window.location.assign(result.authorizationUrl);
+  } catch (error) {
+    setDuesPaymentMessage(error.message || 'Could not start your payment. Please try again.', true);
+    button.disabled = false;
+  }
+}
+
+async function verifyReturnedDuesPayment() {
+  const params = new URLSearchParams(window.location.search);
+  const reference = params.get('reference') || params.get('trxref');
+  if (!reference || !reference.startsWith('MMOGCC-')) {
+    return;
+  }
+
+  setDuesPaymentMessage('Confirming your payment with Paystack…');
+  try {
+    const response = await fetch('/api/payments/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reference }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Your payment could not be confirmed.');
+    }
+
+    const amount = Number(result.amount).toFixed(2);
+    setDuesPaymentMessage(
+      `Payment confirmed: ${result.currency} ${amount}. Reference: ${result.reference}.`
+    );
+    window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`);
+  } catch (error) {
+    setDuesPaymentMessage(error.message || 'Your payment could not be confirmed. Please try again.', true);
+  }
+}
+
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -872,6 +942,7 @@ function bindFormHandlers() {
   document.getElementById('galleryForm').addEventListener('submit', handleGalleryFormSubmit);
   document.getElementById('memberForm').addEventListener('submit', handleMemberFormSubmit);
   document.getElementById('memberSignupForm').addEventListener('submit', handleMemberSignupSubmit);
+  document.getElementById('duesPaymentForm').addEventListener('submit', handleDuesPaymentSubmit);
   document.getElementById('executiveForm').addEventListener('submit', handleExecutiveFormSubmit);
   document.getElementById('changePasswordForm').addEventListener('submit', handleChangePasswordSubmit);
 
@@ -1806,7 +1877,7 @@ async function init() {
   bindMemberOverviewControls();
   renderDashboardContent();
   updateAuthUI();
-  switchDashboard('admin');
+  await verifyReturnedDuesPayment();
 }
 
 init();

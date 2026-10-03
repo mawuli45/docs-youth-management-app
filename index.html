@@ -458,6 +458,22 @@
 
               <div class="panel full-width">
                 <div class="panel-head">
+                  <h3>Pay membership dues</h3>
+                  <span class="chip purple">Secure checkout</span>
+                </div>
+                <p class="dues-description">Choose the amount you owe. You’ll complete payment securely on Paystack.</p>
+                <form id="duesPaymentForm" class="multi-form dues-form">
+                  <label>
+                    Amount (GHS)
+                    <input type="number" name="duesAmount" min="0.01" step="0.01" placeholder="50.00" required />
+                  </label>
+                  <button id="duesPaymentButton" type="submit" class="primary-btn small">Continue to Paystack</button>
+                </form>
+                <div id="duesPaymentMessage" class="form-message" role="status" aria-live="polite"></div>
+              </div>
+
+              <div class="panel full-width">
+                <div class="panel-head">
                   <h3>Member signup</h3>
                   <span class="chip success">Join MMOGCC YOUTH</span>
                 </div>
