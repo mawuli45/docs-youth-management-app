@@ -841,10 +841,37 @@ function setDuesPaymentMessage(message, isError = false) {
   status.classList.toggle('error', isError);
 }
 
+async function readPaymentApiResponse(response, fallbackMessage) {
+  const responseBody = await response.text();
+  let result;
+
+  try {
+    result = JSON.parse(responseBody);
+  } catch {
+    throw new Error(
+      `Payment server returned an unexpected response (HTTP ${response.status}). Run "python server.py" and open http://localhost:8000.`
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(result.error || fallbackMessage);
+  }
+
+  return result;
+}
+
 async function handleDuesPaymentSubmit(event) {
   event.preventDefault();
   if (state.pendingDuesCheckout) {
     window.location.assign(state.pendingDuesCheckout.authorizationUrl);
+    return;
+  }
+
+  if (window.location.protocol === 'file:') {
+    setDuesPaymentMessage(
+      'Payments need the app server. Set PAYSTACK_SECRET_KEY, run "python server.py", then open http://localhost:8000.',
+      true
+    );
     return;
   }
 
@@ -862,9 +889,9 @@ async function handleDuesPaymentSubmit(event) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, amount }),
     });
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Could not start your payment.');
+    const result = await readPaymentApiResponse(response, 'Could not start your payment.');
+    if (!result.reference || !result.authorizationUrl) {
+      throw new Error('Payment server did not return a reference and checkout link.');
     }
 
     state.pendingDuesCheckout = result;
@@ -900,10 +927,7 @@ async function verifyDuesPaymentReference(reference) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reference }),
     });
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Your payment could not be confirmed.');
-    }
+    const result = await readPaymentApiResponse(response, 'Your payment could not be confirmed.');
 
     const amount = Number(result.amount).toFixed(2);
     setDuesPaymentMessage(

@@ -1722,8 +1722,9 @@ body.member-mode .admin-only {
 }
 
 @media (max-width: 980px) {
+  html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   .container {
@@ -1783,12 +1784,12 @@ body.member-mode .admin-only {
 
 @media (max-width: 760px) {
   .modal-content {
-    width: min(460px, calc(100vw - 20px));
+    width: min(460px, calc(100vw - 60px));
     padding: 18px;
   }
 
   .modal-content-wide {
-    width: min(720px, calc(100vw - 20px));
+    width: min(720px, calc(100vw - 60px));
   }
 
   .login-form {
@@ -2266,10 +2267,13 @@ body {
 }
 
 .dashboard-actions {
+  flex: 0 0 auto;
+  min-width: 0;
   gap: 14px;
 }
 
 .segmented-control {
+  max-width: 100%;
   border-radius: 14px;
   border-color: rgba(42, 91, 158, 0.14);
   background: rgba(231, 240, 255, 0.86);
@@ -2278,6 +2282,12 @@ body {
 
 .view-toggle {
   color: #57708f;
+}
+
+#dashboards .view-toggle[data-view='member'] {
+  min-height: 48px;
+  padding-inline: clamp(16px, 2vw, 26px);
+  white-space: nowrap;
 }
 
 .view-toggle.active,
@@ -2385,6 +2395,38 @@ textarea::placeholder {
   }
 }
 
+@media (max-width: 1100px) {
+  #dashboards {
+    overflow-x: clip;
+  }
+
+  #dashboards .section-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #dashboards .section-heading > div:first-child {
+    min-width: 0;
+  }
+
+  #dashboards .dashboard-actions,
+  #dashboards .segmented-control {
+    width: 100%;
+  }
+
+  #dashboards .segmented-control {
+    flex: 1;
+  }
+
+  #dashboards .view-toggle[data-view='member'] {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    white-space: normal;
+    line-height: 1.3;
+  }
+}
+
 @media (max-width: 760px) {
   .hero {
     padding: 50px 0 34px;
@@ -2455,6 +2497,10 @@ textarea::placeholder {
 
   .view-toggle {
     width: 100%;
+  }
+
+  #dashboards .section-heading h2 {
+    max-width: 18ch;
   }
 }
 
