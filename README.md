@@ -29,7 +29,7 @@ $env:PAYSTACK_SECRET_KEY = "sk_test_your_secret_key"
 python server.py
 ```
 
-Configure `PAYSTACK_SECRET_KEY` in Railway's service variables when deployed. Members enter the amount they owe in GHS and continue to Paystack's hosted checkout. The server records a payment only after Paystack confirms the matching reference, amount, currency, and member email, either through transaction verification or the signed webhook. Use a Paystack test secret key to test before switching to a live key.
+Configure `PAYSTACK_SECRET_KEY` in Railway's service variables when deployed. The dues form collects the member's name, email, and amount in GHS; the server generates and displays the payment reference before the member continues to Paystack's hosted checkout. The email is required by Paystack. The server records a payment only after Paystack confirms the matching reference, amount, currency, and member email, either through transaction verification or the signed webhook. Use a Paystack test secret key to test before switching to a live key.
 
 For reliable payment updates when a member closes checkout before returning to the app, configure the Paystack webhook URL as `https://<your-app-domain>/api/payments/webhook`. The endpoint verifies Paystack's signature before recording a successful charge.
 

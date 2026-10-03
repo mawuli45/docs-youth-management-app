@@ -138,6 +138,7 @@ const state = {
   activeFilter: 'all',
   role: 'guest',
   currentMember: null,
+  pendingDuesCheckout: null,
 };
 
 const savedMemberSession = localStorage.getItem(STORAGE_KEYS.memberSession);
@@ -604,13 +605,19 @@ function setupDashboardButtons() {
       }
 
       if (button.dataset.view === 'member' && state.role !== 'member') {
-        openSignupModal();
+        openDuesPaymentModal();
         return;
       }
 
       switchDashboard(button.dataset.view);
+      if (button.dataset.view === 'member') {
+        openDuesPaymentModal();
+      }
     });
   });
+
+  document.getElementById('openDuesPaymentBtn').addEventListener('click', openDuesPaymentModal);
+  document.getElementById('closeDuesPaymentModalBtn').addEventListener('click', closeDuesPaymentModal);
 }
 
 function setupFilterButtons() {
@@ -771,6 +778,27 @@ function handleMemberSignupSubmit(event) {
   alert('Your MMOGCC YOUTH membership signup has been received.');
 }
 
+function openDuesPaymentModal() {
+  const modal = document.getElementById('duesPaymentModal');
+  const form = document.getElementById('duesPaymentForm');
+  const member = state.currentMember;
+  state.pendingDuesCheckout = null;
+  form.reset();
+  form.elements.duesName.value = member?.name || '';
+  form.elements.duesEmail.value = member?.email || '';
+  const button = document.getElementById('duesPaymentButton');
+  button.disabled = false;
+  button.classList.remove('hidden');
+  button.textContent = 'Generate payment reference';
+  document.getElementById('retryDuesVerificationBtn').classList.add('hidden');
+  setDuesPaymentMessage('');
+  modal.classList.remove('hidden');
+}
+
+function closeDuesPaymentModal() {
+  document.getElementById('duesPaymentModal').classList.add('hidden');
+}
+
 function setDuesPaymentMessage(message, isError = false) {
   const status = document.getElementById('duesPaymentMessage');
   if (!status) {
@@ -783,32 +811,37 @@ function setDuesPaymentMessage(message, isError = false) {
 
 async function handleDuesPaymentSubmit(event) {
   event.preventDefault();
-  const member = state.currentMember;
-  if (!member?.name || !member.email) {
-    setDuesPaymentMessage('Please register or sign in as a member before paying dues.', true);
+  if (state.pendingDuesCheckout) {
+    window.location.assign(state.pendingDuesCheckout.authorizationUrl);
     return;
   }
 
   const form = new FormData(event.currentTarget);
+  const name = form.get('duesName').trim();
+  const email = form.get('duesEmail').trim();
   const amount = form.get('duesAmount');
   const button = document.getElementById('duesPaymentButton');
   button.disabled = true;
-  setDuesPaymentMessage('Preparing secure Paystack checkout…');
+  setDuesPaymentMessage('Generating your payment reference…');
 
   try {
     const response = await fetch('/api/payments/initialize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: member.name, email: member.email, amount }),
+      body: JSON.stringify({ name, email, amount }),
     });
     const result = await response.json();
     if (!response.ok) {
       throw new Error(result.error || 'Could not start your payment.');
     }
 
-    window.location.assign(result.authorizationUrl);
+    state.pendingDuesCheckout = result;
+    document.getElementById('duesPaymentReference').value = result.reference;
+    button.textContent = 'Continue to Paystack';
+    setDuesPaymentMessage('Reference generated. Save it, then continue to secure checkout.');
   } catch (error) {
     setDuesPaymentMessage(error.message || 'Could not start your payment. Please try again.', true);
+  } finally {
     button.disabled = false;
   }
 }
@@ -820,6 +853,14 @@ async function verifyReturnedDuesPayment() {
     return;
   }
 
+  openDuesPaymentModal();
+  document.getElementById('duesPaymentReference').value = reference;
+  if (await verifyDuesPaymentReference(reference)) {
+    window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`);
+  }
+}
+
+async function verifyDuesPaymentReference(reference) {
   setDuesPaymentMessage('Confirming your payment with Paystack…');
   try {
     const response = await fetch('/api/payments/verify', {
@@ -836,9 +877,16 @@ async function verifyReturnedDuesPayment() {
     setDuesPaymentMessage(
       `Payment confirmed: ${result.currency} ${amount}. Reference: ${result.reference}.`
     );
-    window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`);
+    document.getElementById('duesPaymentForm').elements.duesAmount.value = amount;
+    document.getElementById('duesPaymentForm').elements.duesName.value = result.memberName;
+    document.getElementById('duesPaymentButton').classList.add('hidden');
+    document.getElementById('retryDuesVerificationBtn').classList.add('hidden');
+    return true;
   } catch (error) {
     setDuesPaymentMessage(error.message || 'Your payment could not be confirmed. Please try again.', true);
+    document.getElementById('duesPaymentButton').classList.add('hidden');
+    document.getElementById('retryDuesVerificationBtn').classList.remove('hidden');
+    return false;
   }
 }
 
@@ -947,7 +995,23 @@ function bindFormHandlers() {
   document.getElementById('galleryForm').addEventListener('submit', handleGalleryFormSubmit);
   document.getElementById('memberForm').addEventListener('submit', handleMemberFormSubmit);
   document.getElementById('memberSignupForm').addEventListener('submit', handleMemberSignupSubmit);
-  document.getElementById('duesPaymentForm').addEventListener('submit', handleDuesPaymentSubmit);
+  const duesPaymentForm = document.getElementById('duesPaymentForm');
+  duesPaymentForm.addEventListener('submit', handleDuesPaymentSubmit);
+  ['duesName', 'duesEmail', 'duesAmount'].forEach((fieldName) => {
+    duesPaymentForm.elements[fieldName].addEventListener('input', () => {
+      state.pendingDuesCheckout = null;
+      document.getElementById('duesPaymentReference').value = '';
+      document.getElementById('duesPaymentButton').textContent = 'Generate payment reference';
+      document.getElementById('duesPaymentButton').classList.remove('hidden');
+      document.getElementById('retryDuesVerificationBtn').classList.add('hidden');
+    });
+  });
+  document.getElementById('retryDuesVerificationBtn').addEventListener('click', async () => {
+    const reference = document.getElementById('duesPaymentReference').value;
+    if (await verifyDuesPaymentReference(reference)) {
+      window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`);
+    }
+  });
   document.getElementById('executiveForm').addEventListener('submit', handleExecutiveFormSubmit);
   document.getElementById('changePasswordForm').addEventListener('submit', handleChangePasswordSubmit);
 
