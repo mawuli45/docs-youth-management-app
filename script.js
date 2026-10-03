@@ -1,12 +1,8 @@
 const STORAGE_KEYS = {
   events: 'youthManagementEvents',
   gallery: 'youthManagementGallery',
-  members: 'youthManagementMembers',
   announcements: 'youthManagementAnnouncements',
   executives: 'youthManagementExecutives',
-  memberSession: 'mmogccYouthHubMemberSession',
-  activityLog: 'mmogccYouthHubActivityLog',
-  adminSession: 'mmogccYouthHubAdminSession',
 };
 
 const defaultMembers = [
@@ -115,45 +111,42 @@ const defaultExecutives = [
 
 const APP_STORAGE_VERSION = 'mmogcc-youth-hub-v2026-09-08';
 
-if (!localStorage.getItem('mmogccYouthHubAdminPassword')) {
-  localStorage.setItem('mmogccYouthHubAdminPassword', 'admin123');
-}
+localStorage.removeItem('youthManagementMembers');
+localStorage.removeItem('mmogccYouthHubMemberSession');
+localStorage.removeItem('mmogccYouthHubActivityLog');
+localStorage.removeItem('mmogccYouthHubAdminSession');
+localStorage.removeItem('mmogccYouthHubAdminPassword');
 
 if (localStorage.getItem('mmogccYouthHubVersion') !== APP_STORAGE_VERSION) {
   localStorage.setItem(STORAGE_KEYS.events, JSON.stringify(defaultEvents));
   localStorage.setItem(STORAGE_KEYS.gallery, JSON.stringify(defaultGallery));
-  localStorage.setItem(STORAGE_KEYS.members, JSON.stringify(defaultMembers));
   localStorage.setItem(STORAGE_KEYS.announcements, JSON.stringify(defaultAnnouncements));
   localStorage.setItem('mmogccYouthHubVersion', APP_STORAGE_VERSION);
+}
+
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[character]);
 }
 
 const state = {
   events: loadFromStorage(STORAGE_KEYS.events, defaultEvents),
   gallery: loadFromStorage(STORAGE_KEYS.gallery, defaultGallery),
-  members: loadFromStorage(STORAGE_KEYS.members, defaultMembers),
+  members: defaultMembers.map((member) => ({ ...member })),
   announcements: loadFromStorage(STORAGE_KEYS.announcements, defaultAnnouncements),
   executives: loadFromStorage(STORAGE_KEYS.executives, defaultExecutives),
-  activities: loadFromStorage(STORAGE_KEYS.activityLog, []),
+  activities: [],
   activeView: 'admin',
   activeFilter: 'all',
   role: 'guest',
   currentMember: null,
   pendingDuesCheckout: null,
 };
-
-const savedMemberSession = localStorage.getItem(STORAGE_KEYS.memberSession);
-if (savedMemberSession) {
-  const member = state.members.find((item) => item.email === savedMemberSession);
-  if (member) {
-    state.currentMember = member;
-    state.role = 'member';
-  }
-}
-
-if (localStorage.getItem(STORAGE_KEYS.adminSession) === 'true') {
-  state.role = 'admin';
-  state.currentMember = null;
-}
 
 function loadFromStorage(key, fallback) {
   try {
@@ -175,8 +168,9 @@ function saveGallery() {
 }
 
 function saveMembers() {
-  localStorage.setItem(STORAGE_KEYS.members, JSON.stringify(state.members));
-  syncStateWithServer();
+  if (state.role === 'admin') {
+    void syncStateWithServer();
+  }
 }
 
 function saveAnnouncements() {
@@ -190,14 +184,31 @@ function saveExecutives() {
 }
 
 function saveActivities() {
-  localStorage.setItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activities));
-  syncStateWithServer();
+  if (state.role === 'admin') {
+    void syncStateWithServer();
+  }
 }
 
 async function hydrateStateFromServer() {
   try {
-    const response = await fetch('/api/state', { cache: 'no-store' });
+    const sessionResponse = await fetch('/api/admin/session', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    if (!sessionResponse.ok) {
+      console.error(`Admin session check failed with HTTP ${sessionResponse.status}.`);
+    }
+    state.role = sessionResponse.ok && (await sessionResponse.json()).authenticated ? 'admin' : 'guest';
+
+    const response = await fetch('/api/state', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
     if (!response.ok) {
+      state.role = 'guest';
+      state.members = defaultMembers.map((member) => ({ ...member }));
+      state.activities = [];
+      console.error(`App state request failed with HTTP ${response.status}.`);
       return;
     }
 
@@ -206,28 +217,40 @@ async function hydrateStateFromServer() {
       return;
     }
 
-    const keys = ['events', 'gallery', 'members', 'announcements', 'executives', 'activities'];
+    const keys = ['events', 'gallery', 'announcements', 'executives'];
     keys.forEach((key) => {
       if (Array.isArray(serverState[key])) {
         state[key] = serverState[key];
       }
     });
 
+    state.members = state.role === 'admin' && Array.isArray(serverState.members)
+      ? serverState.members
+      : defaultMembers.map((member) => ({ ...member }));
+    state.activities = state.role === 'admin' && Array.isArray(serverState.activities)
+      ? serverState.activities
+      : [];
     localStorage.setItem(STORAGE_KEYS.events, JSON.stringify(state.events));
     localStorage.setItem(STORAGE_KEYS.gallery, JSON.stringify(state.gallery));
-    localStorage.setItem(STORAGE_KEYS.members, JSON.stringify(state.members));
     localStorage.setItem(STORAGE_KEYS.announcements, JSON.stringify(state.announcements));
     localStorage.setItem(STORAGE_KEYS.executives, JSON.stringify(state.executives));
-    localStorage.setItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activities));
-  } catch {
-    // Ignore backend availability issues and continue with localStorage fallback.
+  } catch (error) {
+    state.role = 'guest';
+    state.members = defaultMembers.map((member) => ({ ...member }));
+    state.activities = [];
+    console.error('Could not load state from the app server; showing public demo data.', error);
   }
 }
 
 async function syncStateWithServer() {
+  if (state.role !== 'admin') {
+    return;
+  }
+
   try {
-    await fetch('/api/state', {
+    const response = await fetch('/api/state', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -240,8 +263,19 @@ async function syncStateWithServer() {
         activities: state.activities,
       }),
     });
-  } catch {
-    // Ignore backend sync failures and rely on localStorage.
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result.error || 'The server could not save your changes.');
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Administrator sign-in')) {
+      state.role = 'guest';
+      state.members = defaultMembers.map((member) => ({ ...member }));
+      state.activities = [];
+      updateAuthUI();
+      renderDashboardContent();
+    }
+    alert(error.message || 'The server could not save your changes.');
   }
 }
 
@@ -289,12 +323,12 @@ function renderMemberTable() {
         .map(
           ({ member, index }) => `
         <tr>
-          <td>${member.name}</td>
-          <td>${member.role}</td>
-          <td>${member.engagement}</td>
-          <td>${member.age || '-'}</td>
-          <td>${member.dayBornGroup || '-'}</td>
-          <td><span class="status-pill ${member.status.toLowerCase()}">${member.status}</span></td>
+          <td>${escapeHTML(member.name)}</td>
+          <td>${escapeHTML(member.role)}</td>
+          <td>${escapeHTML(member.engagement)}</td>
+          <td>${escapeHTML(member.age || '-')}</td>
+          <td>${escapeHTML(member.dayBornGroup || '-')}</td>
+          <td><span class="status-pill ${escapeHTML(String(member.status || '').toLowerCase())}">${escapeHTML(member.status)}</span></td>
           ${
             isAdmin
               ? `<td><div class="card-actions compact-actions"><button type="button" class="delete-btn" data-delete-type="member" data-index="${index}">Delete</button></div></td>`
@@ -342,11 +376,11 @@ function renderActivityRecords() {
           (activity) => `
             <div class="activity-record">
               <div>
-                <strong>${activity.memberName}</strong>
-                <p>${activity.action}</p>
+                <strong>${escapeHTML(activity.memberName)}</strong>
+                <p>${escapeHTML(activity.action)}</p>
               </div>
               <div class="activity-meta">
-                <span>${activity.email}</span>
+                <span>${escapeHTML(activity.email)}</span>
                 <small>${new Date(activity.timestamp).toLocaleString('en-GB', {
                   day: '2-digit',
                   month: 'short',
@@ -431,7 +465,7 @@ function renderMemberInsightsChart() {
               .map(
                 (item) => `
                   <div class="chart-row">
-                    <span class="chart-label">${item.label}</span>
+                    <span class="chart-label">${escapeHTML(item.label)}</span>
                     <div class="chart-track">
                       <span class="chart-fill" style="width: ${(item.value / maxValue) * 100}%"></span>
                     </div>
@@ -755,7 +789,7 @@ function updateSignupEmploymentDetailField() {
   }
 }
 
-function handleMemberSignupSubmit(event) {
+async function handleMemberSignupSubmit(event) {
   event.preventDefault();
   const form = new FormData(event.target);
   const name = form.get('signupName').trim();
@@ -777,37 +811,41 @@ function handleMemberSignupSubmit(event) {
     return;
   }
 
-  const emailExists = state.members.some((member) => member.email && member.email.toLowerCase() === email.toLowerCase());
-  if (emailExists) {
-    alert('This email address is already registered. Please use a different email.');
-    return;
+  try {
+    const response = await fetch('/api/members/register', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        email,
+        role,
+        dob,
+        age,
+        dayBornGroup,
+        location,
+        employmentStatus,
+        employmentDetail,
+        contact,
+        emergencyContact,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Your registration could not be completed.');
+    }
+
+    const newMember = result.member;
+    state.members.unshift(newMember);
+    renderMemberTable();
+    renderStats();
+    event.target.reset();
+    closeSignupModal();
+    signInMember(newMember);
+    alert('Your MMOGCC YOUTH membership signup has been received.');
+  } catch (error) {
+    alert(error.message || 'Your registration could not be completed. Please try again.');
   }
-
-  const newMember = {
-    name,
-    role,
-    engagement: 'New',
-    status: 'Pending',
-    email,
-    dob,
-    age,
-    dayBornGroup,
-    location,
-    employmentStatus,
-    employmentDetail,
-    contact,
-    emergencyContact,
-  };
-
-  state.members.unshift(newMember);
-  saveMembers();
-  logMemberActivity(newMember, 'Signed up', 'New membership registration completed.');
-  renderMemberTable();
-  renderStats();
-  event.target.reset();
-  closeSignupModal();
-  signInMember(newMember);
-  alert('Your MMOGCC YOUTH membership signup has been received.');
 }
 
 function openDuesPaymentModal() {
@@ -1015,37 +1053,6 @@ async function handleExecutiveFormSubmit(event) {
   event.target.reset();
 }
 
-function handleChangePasswordSubmit(event) {
-  event.preventDefault();
-  const form = new FormData(event.target);
-  const currentPassword = form.get('currentPassword').trim();
-  const newPassword = form.get('newPassword').trim();
-  const confirmPassword = form.get('confirmPassword').trim();
-
-  if (!currentPassword || !newPassword || !confirmPassword) {
-    return;
-  }
-
-  if (currentPassword !== getStoredAdminPassword()) {
-    alert('The current password is incorrect.');
-    return;
-  }
-
-  if (newPassword.length < 6) {
-    alert('New password must be at least 6 characters long.');
-    return;
-  }
-
-  if (newPassword !== confirmPassword) {
-    alert('New password and confirm password do not match.');
-    return;
-  }
-
-  localStorage.setItem('mmogccYouthHubAdminPassword', newPassword);
-  alert('Admin password updated successfully.');
-  event.target.reset();
-}
-
 function bindFormHandlers() {
   document.getElementById('eventForm').addEventListener('submit', handleEventFormSubmit);
   document.getElementById('galleryForm').addEventListener('submit', handleGalleryFormSubmit);
@@ -1069,7 +1076,6 @@ function bindFormHandlers() {
     }
   });
   document.getElementById('executiveForm').addEventListener('submit', handleExecutiveFormSubmit);
-  document.getElementById('changePasswordForm').addEventListener('submit', handleChangePasswordSubmit);
 
   const signupForm = document.getElementById('signupForm');
   if (signupForm) {
@@ -1659,53 +1665,35 @@ function closeLoginModal() {
   document.getElementById('loginModal').classList.add('hidden');
 }
 
-function getStoredAdminPassword() {
-  return localStorage.getItem('mmogccYouthHubAdminPassword') || 'admin123';
-}
-
-function handleLoginSubmit(event) {
+async function handleLoginSubmit(event) {
   event.preventDefault();
   const form = new FormData(event.target);
   const username = form.get('username').trim().toLowerCase();
-  const password = form.get('password').trim();
+  const password = form.get('password');
 
-  if (username === 'admin' && password === getStoredAdminPassword()) {
-    state.role = 'admin';
+  try {
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Admin sign-in failed.');
+    }
+
     state.currentMember = null;
-    localStorage.setItem(STORAGE_KEYS.adminSession, 'true');
+    await hydrateStateFromServer();
+    if (state.role !== 'admin') {
+      throw new Error('The server did not establish an administrator session.');
+    }
     closeLoginModal();
-    updateAuthUI();
-    switchDashboard('admin');
     event.target.reset();
-    return;
+    updateAuthUI();
+  } catch (error) {
+    alert(error.message || 'Admin sign-in failed. Please try again.');
   }
-
-  alert('Invalid login details. Please try again.');
-}
-
-function saveMemberSession(member) {
-  if (!member || !member.email) {
-    localStorage.removeItem(STORAGE_KEYS.memberSession);
-    return;
-  }
-
-  localStorage.setItem(STORAGE_KEYS.memberSession, member.email);
-}
-
-function logMemberActivity(member, action, details = '') {
-  if (!member || !member.email) {
-    return;
-  }
-
-  state.activities.unshift({
-    memberName: member.name,
-    email: member.email,
-    action,
-    details,
-    timestamp: new Date().toISOString(),
-  });
-
-  saveActivities();
 }
 
 function signInMember(member) {
@@ -1715,17 +1703,35 @@ function signInMember(member) {
 
   state.currentMember = member;
   state.role = 'member';
-  saveMemberSession(member);
-  logMemberActivity(member, 'Signed in', 'Member opened their dashboard.');
   updateAuthUI();
 }
 
-function handleLogout() {
+async function handleLogout() {
+  let logoutError = null;
+  if (state.role === 'admin') {
+    try {
+      const response = await fetch('/api/admin/logout', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      if (!response.ok) {
+        logoutError = 'The server could not end the administrator session.';
+      }
+    } catch {
+      logoutError = 'Could not contact the server to end the administrator session.';
+    }
+  }
+
   state.role = 'guest';
   state.currentMember = null;
-  localStorage.removeItem(STORAGE_KEYS.memberSession);
-  localStorage.removeItem(STORAGE_KEYS.adminSession);
+  state.members = defaultMembers.map((member) => ({ ...member }));
+  state.activities = [];
   updateAuthUI();
+  if (logoutError) {
+    alert(logoutError);
+  }
 }
 
 function bindAuthHandlers() {

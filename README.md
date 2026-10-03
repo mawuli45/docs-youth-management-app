@@ -18,6 +18,20 @@ python server.py
 
 Then visit `http://localhost:8000`.
 
+## Admin access and member privacy
+
+Admin access is verified by the server. Set both variables before starting the app; do not store these values in browser storage or source files:
+
+```powershell
+$env:ADMIN_PASSWORD = "a-unique-password-at-least-12-characters"
+$env:ADMIN_SESSION_SECRET = (python -c "import secrets; print(secrets.token_urlsafe(48))")
+python server.py
+```
+
+In Railway, set `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` in the app service's Production variables. Use a unique password of at least 12 characters and a stable, randomly generated session secret of at least 32 characters. Keep the session secret unchanged between deployments; changing it signs out all administrators. Admin sessions use an HTTP-only, same-site cookie and expire after eight hours.
+
+Only a signed-in administrator can read or update member records and activity logs. Public registration remains available and is saved by the server; anonymous state responses omit member records and activity logs. The app also clears older browser-stored copies of member records on load.
+
 ## Paystack dues payments
 
 Set the Paystack **secret** key as a server environment variable before starting the app. Do not put the secret key in `script.js` or other browser files.

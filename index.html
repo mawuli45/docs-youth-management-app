@@ -233,29 +233,14 @@
 
               <div class="panel full-width admin-only">
                 <div class="panel-head">
-                  <h3>Admin password settings</h3>
-                  <span class="chip neutral">Secure</span>
+                  <h3>Admin sign-in security</h3>
+                  <span class="chip neutral">Server managed</span>
                 </div>
 
-                <form id="changePasswordForm" class="multi-form">
-                  <div class="field-row">
-                    <label>
-                      Current password
-                      <input type="password" name="currentPassword" placeholder="Enter current password" required />
-                    </label>
-                  </div>
-                  <div class="field-row">
-                    <label>
-                      New password
-                      <input type="password" name="newPassword" placeholder="Enter new password" required />
-                    </label>
-                    <label>
-                      Confirm password
-                      <input type="password" name="confirmPassword" placeholder="Confirm new password" required />
-                    </label>
-                  </div>
-                  <button type="submit" class="primary-btn small">Update password</button>
-                </form>
+                <p>
+                  The administrator password is configured securely in the server environment, not in this browser.
+                  Update the <code>ADMIN_PASSWORD</code> service variable in Railway to change it.
+                </p>
               </div>
 
               <div class="panel full-width admin-only">
@@ -739,6 +724,6 @@
       </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=member-security-20261003"></script>
   </body>
 </html>
