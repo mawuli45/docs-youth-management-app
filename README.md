@@ -28,7 +28,7 @@ $env:ADMIN_SESSION_SECRET = (python -c "import secrets; print(secrets.token_urls
 python server.py
 ```
 
-In Railway, set `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` in the app service's Production variables. Use a unique password of at least 12 characters and a stable, randomly generated session secret of at least 32 characters. Keep the session secret unchanged between deployments; changing it signs out all administrators. Admin sessions use an HTTP-only, same-site cookie and expire after eight hours.
+In Vercel, set `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` in the project's Environment Variables. Use a unique password of at least 12 characters and a stable, randomly generated session secret of at least 32 characters. Keep the session secret unchanged between deployments; changing it signs out all administrators. Admin sessions use an HTTP-only, same-site cookie and expire after eight hours.
 
 Only a signed-in administrator can read or update member records and activity logs. Public registration remains available and is saved by the server; anonymous state responses omit member records and activity logs. The app also clears older browser-stored copies of member records on load.
 
@@ -43,26 +43,25 @@ $env:PAYSTACK_SECRET_KEY = "sk_test_your_secret_key"
 python server.py
 ```
 
-Configure `PAYSTACK_SECRET_KEY` in Railway's service variables when deployed. The dues form collects the member's name, email, and amount in GHS; the server generates and displays the payment reference before the member continues to Paystack's hosted checkout. The email is required by Paystack. The server records a payment only after Paystack confirms the matching reference, amount, currency, and member email, either through transaction verification or the signed webhook. Use a Paystack test secret key to test before switching to a live key.
+Configure `PAYSTACK_SECRET_KEY` in Vercel's Environment Variables when deployed. The dues form collects the member's name, email, and amount in GHS; the server generates and displays the payment reference before the member continues to Paystack's hosted checkout. The email is required by Paystack. The server records a payment only after Paystack confirms the matching reference, amount, currency, and member email, either through transaction verification or the signed webhook. Use a Paystack test secret key to test before switching to a live key.
 
 For reliable payment updates when a member closes checkout before returning to the app, configure the Paystack webhook URL as `https://<your-app-domain>/api/payments/webhook`. The endpoint verifies Paystack's signature before recording a successful charge.
 
-## Deploy on Railway
+## Deploy on Vercel
 
-1. Push this project to a GitHub repository.
-2. Go to Railway and create a new project from GitHub.
-3. Select the repository and Railway will detect the Python app.
-4. Add a Railway Volume to the app service and set its mount path to `/data`.
-5. In the app service's Production variables, set `DATABASE_PATH` to `/data/mmogcc_youth.db`.
-6. Make sure the service uses the default build command and set the start command to:
+The Vercel deployment serves the frontend and runs the Python API as a Vercel Function. PostgreSQL on Neon provides persistent storage; SQLite remains available for local development.
 
-```bash
-python server.py
-```
+1. Create a Neon project and copy its pooled PostgreSQL connection string.
+2. Import this GitHub repository into Vercel. Vercel reads `vercel.json` to build the static frontend and route `/api/*` requests to the Python function.
+3. Add these Production Environment Variables in Vercel:
+   - `DATABASE_URL`: the Neon connection string (use the pooled connection string and keep it private).
+   - `ADMIN_PASSWORD`: a unique password of at least 12 characters.
+   - `ADMIN_SESSION_SECRET`: a stable random secret of at least 32 characters.
+   - `PAYSTACK_SECRET_KEY`: optional; required only to accept dues payments.
+4. Deploy or redeploy the project. The API creates its PostgreSQL tables and initial public content on the first API request.
+5. Set the Paystack webhook URL to `https://<your-vercel-domain>/api/payments/webhook`.
 
-7. Railway will automatically expose the app on a public URL.
-
-The app creates the database file and parent folder if needed. Keep the Railway Volume attached to the same service and mount path across deployments. A new volume will start with a fresh database; it does not recover registrations stored in an older ephemeral database.
+Do not commit database URLs or secrets. Vercel's function filesystem is not persistent, so do not set `DATABASE_PATH` there. Existing SQLite or former Railway data is not copied automatically; migrate any records you need before switching members to the new deployment.
 
 ## Features
 
@@ -70,5 +69,5 @@ The app creates the database file and parent folder if needed. Keep the Railway 
 - Publish events with custom details and poster placeholders
 - Add gallery images with captions and categories
 - Browse executive profiles and community highlights
-- Server state and dues payments are stored in SQLite; configure `DATABASE_PATH` on hosts with persistent volumes
+- Server state and dues payments are stored in Neon PostgreSQL on Vercel or SQLite during local development
 - Browser `localStorage` provides local demo state when the server API is unavailable

@@ -16,8 +16,16 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:
+    psycopg = None
+    dict_row = None
+
 APP_DIR = Path(__file__).resolve().parent
 ROOT_DIR = APP_DIR
+DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
 DATABASE_PATH = os.environ.get('DATABASE_PATH', '').strip()
 DB_FILE = (
     Path(DATABASE_PATH).expanduser()
@@ -28,6 +36,62 @@ PAYSTACK_API_URL = 'https://api.paystack.co'
 PAYMENT_CURRENCY = 'GHS'
 ADMIN_SESSION_COOKIE = 'mmogcc_admin_session'
 ADMIN_SESSION_MAX_AGE = 8 * 60 * 60
+
+
+class DatabaseConnection:
+    def __init__(self, connection, is_postgres):
+        self.connection = connection
+        self.is_postgres = is_postgres
+        self.write_transaction = False
+
+    def execute(self, query, parameters=()):
+        if self.is_postgres:
+            query = query.replace('?', '%s')
+            if self.write_transaction and query.strip() == 'SELECT payload FROM app_state WHERE id = 1':
+                query += ' FOR UPDATE'
+        return self.connection.execute(query, parameters)
+
+    def commit(self):
+        self.connection.commit()
+        self.write_transaction = False
+
+    def rollback(self):
+        self.connection.rollback()
+        self.write_transaction = False
+
+    def close(self):
+        self.connection.close()
+
+
+def get_connection():
+    if DATABASE_URL:
+        if psycopg is None:
+            raise RuntimeError('PostgreSQL support is unavailable. Install the psycopg dependency.')
+        connection = psycopg.connect(
+            DATABASE_URL,
+            row_factory=dict_row,
+            connect_timeout=10,
+        )
+        return DatabaseConnection(connection, is_postgres=True)
+
+    if os.environ.get('VERCEL') == '1':
+        raise RuntimeError('DATABASE_URL must be configured for persistent Vercel storage.')
+
+    connection = sqlite3.connect(DB_FILE)
+    connection.row_factory = sqlite3.Row
+    return DatabaseConnection(connection, is_postgres=False)
+
+
+def begin_write(conn):
+    conn.execute('BEGIN' if conn.is_postgres else 'BEGIN IMMEDIATE')
+    conn.write_transaction = True
+
+
+def database_errors():
+    errors = [sqlite3.Error]
+    if psycopg is not None:
+        errors.append(psycopg.Error)
+    return tuple(errors)
 
 
 def payment_matches(payment, data, reference):
@@ -161,14 +225,9 @@ DEFAULT_STATE = {
 }
 
 
-def get_connection():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
 def ensure_storage():
-    DB_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if not DATABASE_URL:
+        DB_FILE.parent.mkdir(parents=True, exist_ok=True)
     conn = get_connection()
     conn.execute(
         'CREATE TABLE IF NOT EXISTS app_state (id INTEGER PRIMARY KEY CHECK(id = 1), payload TEXT NOT NULL)'
@@ -189,7 +248,7 @@ def ensure_storage():
     row = conn.execute('SELECT payload FROM app_state WHERE id = 1').fetchone()
     if row is None:
         conn.execute(
-            'INSERT INTO app_state(id, payload) VALUES (1, ?)',
+            'INSERT INTO app_state(id, payload) VALUES (1, ?) ON CONFLICT(id) DO NOTHING',
             (json.dumps(DEFAULT_STATE),),
         )
     conn.commit()
@@ -314,7 +373,7 @@ class AppHandler(SimpleHTTPRequestHandler):
 
         conn = get_connection()
         try:
-            conn.execute('BEGIN IMMEDIATE')
+            begin_write(conn)
             row = conn.execute('SELECT payload FROM app_state WHERE id = 1').fetchone()
             stored_state = json.loads(row['payload']) if row else None
             current_state = (
@@ -324,11 +383,12 @@ class AppHandler(SimpleHTTPRequestHandler):
                 if key in payload:
                     current_state[key] = payload[key]
             conn.execute(
-                'INSERT OR REPLACE INTO app_state(id, payload) VALUES (1, ?)',
+                'INSERT INTO app_state(id, payload) VALUES (1, ?) '
+                'ON CONFLICT(id) DO UPDATE SET payload = excluded.payload',
                 (json.dumps(current_state),),
             )
             conn.commit()
-        except (sqlite3.Error, json.JSONDecodeError, TypeError):
+        except (*database_errors(), json.JSONDecodeError, TypeError):
             conn.rollback()
             self._send_json(500, {'error': 'Your changes could not be saved. Please try again.'})
             return
@@ -504,7 +564,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         member['email'] = member['email'].lower()
         conn = get_connection()
         try:
-            conn.execute('BEGIN IMMEDIATE')
+            begin_write(conn)
             row = conn.execute('SELECT payload FROM app_state WHERE id = 1').fetchone()
             stored_state = json.loads(row['payload']) if row else None
             state = stored_state if isinstance(stored_state, dict) else json.loads(json.dumps(DEFAULT_STATE))
@@ -529,11 +589,12 @@ class AppHandler(SimpleHTTPRequestHandler):
                 },
             )
             conn.execute(
-                'INSERT OR REPLACE INTO app_state(id, payload) VALUES (1, ?)',
+                'INSERT INTO app_state(id, payload) VALUES (1, ?) '
+                'ON CONFLICT(id) DO UPDATE SET payload = excluded.payload',
                 (json.dumps(state),),
             )
             conn.commit()
-        except (sqlite3.Error, json.JSONDecodeError, TypeError):
+        except (*database_errors(), json.JSONDecodeError, TypeError):
             conn.rollback()
             self._send_json(500, {'error': 'Registration could not be saved. Please try again.'})
             return

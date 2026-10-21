@@ -1,0 +1,5 @@
+.git/
+.venv/
+mmogcc_youth.db
+mmogcc_youth.db-*
+__pycache__/

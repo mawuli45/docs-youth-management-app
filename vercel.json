@@ -2,5 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "buildCommand": "mkdir -p public && cp index.html styles.css script.js mmogcc-logo.jpeg public/",
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index.py?__route=/api/:path*"
+    }
+  ]
 }
