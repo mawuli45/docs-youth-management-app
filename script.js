@@ -1996,6 +1996,36 @@ function bindHomepageActions() {
   }
 }
 
+function bindThemeSwitcher() {
+  const themeButtons = document.querySelectorAll('.theme-btn');
+  if (!themeButtons.length) {
+    return;
+  }
+
+  const setTheme = (themeName) => {
+    document.body.classList.remove('theme-premium', 'theme-vibrant', 'theme-dark', 'theme-compact');
+    document.body.classList.add(`theme-${themeName}`);
+
+    const activeButton = document.querySelector(`.theme-btn[data-theme="${themeName}"]`);
+    themeButtons.forEach((button) => {
+      const isActive = button === activeButton;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-pressed', String(isActive));
+    });
+
+    localStorage.setItem('mmogccYouthTheme', themeName);
+  };
+
+  const savedTheme = localStorage.getItem('mmogccYouthTheme') || 'vibrant';
+  setTheme(savedTheme);
+
+  themeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      setTheme(button.dataset.theme || 'vibrant');
+    });
+  });
+}
+
 async function init() {
   await hydrateStateFromServer();
   setupDashboardButtons();
@@ -2005,6 +2035,7 @@ async function init() {
   bindAuthHandlers();
   bindHomepageActions();
   bindChatbotHandlers();
+  bindThemeSwitcher();
   bindMemberOverviewControls();
   renderDashboardContent();
   updateAuthUI();

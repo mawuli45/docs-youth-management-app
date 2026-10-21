@@ -7,7 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=logo-20261003" />
+    <link rel="stylesheet" href="styles.css?v=responsive-themes-20261021" />
+
   </head>
   <body>
     <header class="topbar">
@@ -26,6 +27,13 @@
           <a href="#gallery">Gallery</a>
           <a href="#executives">Executives</a>
         </nav>
+
+        <div class="theme-switcher" aria-label="Design theme selector">
+          <button class="theme-btn active" data-theme="premium" type="button">Premium</button>
+          <button class="theme-btn" data-theme="vibrant" type="button">Vibrant</button>
+          <button class="theme-btn" data-theme="dark" type="button">Dark</button>
+          <button class="theme-btn" data-theme="compact" type="button">Compact</button>
+        </div>
 
         <div class="auth-area">
           <span id="authStatus" class="auth-status">Not signed in</span>
@@ -724,6 +732,6 @@
       </div>
     </div>
 
-    <script src="script.js?v=member-security-20261003"></script>
+    <script src="script.js?v=responsive-themes-20261021"></script>
   </body>
 </html>
